@@ -12,8 +12,9 @@ final class PercentagePaymentFeePolicy implements PaymentFeePolicy
 
     public function apply(Money $money): Money
     {
-        return $money->add(
-            new Money((int)round($money->amount * self::PERCENTAGE_FEE / 100), $money->currency)
+        return new Money(
+            (int)round($money->amount * self::PERCENTAGE_FEE / 100),
+            $money->currency
         );
     }
 }

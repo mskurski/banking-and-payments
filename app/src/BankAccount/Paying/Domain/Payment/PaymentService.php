@@ -30,40 +30,20 @@ class PaymentService
     {
         $this->validateDailyPaymentsLimit($payment);
 
-        $toDebit = $this->calculatePaymentWithFees($payment->money);
-
-        // validate enough balance
-        if ($payment->payerAccountBalance()->lessThen($toDebit)) {
-            throw new PaymentException('Not enough balance to debit account.');
+        foreach ($this->paymentFeePolicies as $paymentFeePolicy) {
+            $payment->applyPaymentFeePolicy($paymentFeePolicy);
         }
 
         try {
-            $payment->fromAccount->debit($toDebit);
-            $payment->toAccount->credit($payment->money);
+            $payment->execute();
+
+            $this->accountRepository->savePayment($payment);
+
+            // here we can additionally publish some domain events like PaymentMade
         } catch (\DomainException $e) {
+            // here we can additionally publish some domain event like PaymentFailed
             throw new PaymentException($e->getMessage());
         }
-
-        $this->accountRepository->savePayment(
-            paymentId: $payment->id,
-            debitAccountId: $payment->fromAccount->id,
-            debitMoney: $toDebit,
-            creditAccountId: $payment->toAccount->id,
-            creditMoney: $payment->money,
-            date: $payment->date,
-        );
-
-        // here we can additionally publish some domain events
-    }
-
-    private function calculatePaymentWithFees(Money $money): Money
-    {
-        $paymentWithFees = $money;
-        foreach ($this->paymentFeePolicies as $paymentFeePolicy) {
-            $paymentWithFees = $paymentFeePolicy->apply($paymentWithFees);
-        }
-
-        return $paymentWithFees;
     }
 
     /**

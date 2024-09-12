@@ -89,6 +89,7 @@ final class PaymentServiceTest extends TestCase
         Money $expectedPayerBalance,
         Money $expectedReceiverBalance
     ): void {
+        // GIVEN
         $payment = new Payment(
             id: PaymentId::generate(),
             money: $money,
@@ -97,22 +98,10 @@ final class PaymentServiceTest extends TestCase
             date: new \DateTimeImmutable()
         );
 
-        $toDebit = $money;
-        foreach ($this->paymentFeePolicies as $paymentFeePolicy) {
-            $toDebit = $paymentFeePolicy->apply($money);
-        }
-
         $this->accountRepositoryMock
             ->expects($this->once())
             ->method('savePayment')
-            ->with(
-                paymentId: $payment->id,
-                debitAccountId: $payment->fromAccount->id,
-                debitMoney: $toDebit,
-                creditAccountId: $payment->toAccount->id,
-                creditMoney: $payment->money,
-                date: $payment->date,
-            );
+            ->with($payment);
 
         $this->accountRepositoryMock
             ->expects($this->once())
@@ -124,8 +113,8 @@ final class PaymentServiceTest extends TestCase
         $this->paymentService->makePayment($payment);
 
         // THEN
-        self::assertEquals($expectedPayerBalance, $payer->balance);
-        self::assertEquals($expectedReceiverBalance, $receiver->balance);
+        self::assertEquals($expectedPayerBalance, $payment->payerAccountBalance());
+        self::assertEquals($expectedReceiverBalance, $payment->receiverAccountBalance());
     }
 
     public static function provideDataForPaymentError(): iterable
@@ -195,8 +184,8 @@ final class PaymentServiceTest extends TestCase
         $this->paymentService->makePayment($payment);
 
         // THEN
-        self::assertEquals($expectedPayerBalance, $payer->balance);
-        self::assertEquals($expectedReceiverBalance, $receiver->balance);
+        self::assertEquals($expectedPayerBalance, $payment->payerAccountBalance());
+        self::assertEquals($expectedReceiverBalance, $payment->receiverAccountBalance());
     }
 
     private static function createAccount(int $amount, Currency $currency): Account

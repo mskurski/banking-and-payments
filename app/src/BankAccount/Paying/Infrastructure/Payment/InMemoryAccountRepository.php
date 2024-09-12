@@ -9,7 +9,7 @@ use App\BankAccount\Paying\Domain\Payment\AccountId;
 use App\BankAccount\Paying\Domain\Payment\AccountRepository;
 use App\BankAccount\Paying\Domain\Payment\Currency;
 use App\BankAccount\Paying\Domain\Payment\Money;
-use App\BankAccount\Paying\Domain\Payment\PaymentId;
+use App\BankAccount\Paying\Domain\Payment\Payment;
 use App\BankAccount\Paying\Infrastructure\Payment\Model\AccountTransaction;
 use App\BankAccount\Paying\Infrastructure\Payment\Model\AccountTransactionType;
 use Symfony\Component\Uid\Uuid;
@@ -51,38 +51,32 @@ final class InMemoryAccountRepository implements AccountRepository
         }
     }
 
-    public function savePayment(
-        PaymentId $paymentId,
-        AccountId $debitAccountId,
-        Money $debitMoney,
-        AccountId $creditAccountId,
-        Money $creditMoney,
-        \DateTimeImmutable $date
-    ): void {
-        if (!isset($this->accountTransactions[$creditAccountId->toString()])) {
-            $this->accountTransactions[$creditAccountId->toString()] = [];
-        }
-
-        $this->accountTransactions[$debitAccountId->toString()][] = new AccountTransaction(
-            id: Uuid::v4()->toRfc4122(),
-            type: AccountTransactionType::DEBIT,
-            accountId: $debitAccountId->toString(),
-            amount: $debitMoney->amount,
-            currency: $debitMoney->currency->name,
-            date: $date,
-            relatedPaymentId: $paymentId->toString(),
-            relatedAccountId: $creditAccountId->toString(),
+    public function savePayment(Payment $payment): void
+    {
+        $this->addTransaction(
+            new AccountTransaction(
+                id: Uuid::v4()->toRfc4122(),
+                type: AccountTransactionType::DEBIT,
+                accountId: $payment->fromAccount->id->toString(),
+                amount: $payment->debitMoney()->amount,
+                currency: $payment->debitMoney()->currency->name,
+                date: $payment->date,
+                relatedPaymentId: $payment->id->toString(),
+                relatedAccountId: $payment->toAccount->id->toString(),
+            )
         );
 
-        $this->accountTransactions[$creditAccountId->toString()][] = new AccountTransaction(
-            id: Uuid::v4()->toRfc4122(),
-            type: AccountTransactionType::CREDIT,
-            accountId: $creditAccountId->toString(),
-            amount: $creditMoney->amount,
-            currency: $creditMoney->currency->name,
-            date: $date,
-            relatedPaymentId: $paymentId->toString(),
-            relatedAccountId: $debitAccountId->toString(),
+        $this->addTransaction(
+            new AccountTransaction(
+                id: Uuid::v4()->toRfc4122(),
+                type: AccountTransactionType::CREDIT,
+                accountId: $payment->toAccount->id->toString(),
+                amount: $payment->creditMoney()->amount,
+                currency: $payment->creditMoney()->currency->name,
+                date: $payment->date,
+                relatedPaymentId: $payment->id->toString(),
+                relatedAccountId: $payment->fromAccount->id->toString(),
+            )
         );
 
         // here we can publish some EventSourcing events so we can make some projections with account balance
@@ -99,6 +93,15 @@ final class InMemoryAccountRepository implements AccountRepository
         );
 
         return count($debitTransactions);
+    }
+
+    private function addTransaction(AccountTransaction $accountTransaction): void
+    {
+        if (!isset($this->accountTransactions[$accountTransaction->accountId])) {
+            $this->accountTransactions[$accountTransaction->accountId] = [];
+        }
+
+        $this->accountTransactions[$accountTransaction->accountId][] = $accountTransaction;
     }
 
     /**

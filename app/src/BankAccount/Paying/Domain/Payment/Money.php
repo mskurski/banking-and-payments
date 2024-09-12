@@ -29,7 +29,7 @@ final readonly class Money
     {
         $this->validateCurrency($money);
 
-        if ($this->lessThen($money)) {
+        if ($this->lessThan($money)) {
             throw new DomainException('Not enough money to subtract.');
         }
 
@@ -41,7 +41,7 @@ final readonly class Money
         return $this->currency->isSameAs($money->currency);
     }
 
-    public function lessThen(Money $money): bool
+    public function lessThan(Money $money): bool
     {
         if (!$this->inSameCurrencyAs($money)) {
             throw new DomainException('Not able to compare amounts in different currencies.');

@@ -31,7 +31,7 @@ final class Account
             throw new \DomainException('Can not debit account with different currency than account currency.');
         }
 
-        if ($this->balance->lessThen($money)) {
+        if ($this->balance->lessThan($money)) {
             throw new \DomainException('Can not debit account with higher amount than account balance.');
         }
 

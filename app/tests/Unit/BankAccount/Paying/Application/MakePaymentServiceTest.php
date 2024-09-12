@@ -19,15 +19,14 @@ use Tests\Unit\BankAccount\Paying\Application\Fake\FakeAccountRepository;
 
 final class MakePaymentServiceTest extends TestCase
 {
-    private FakeAccountRepository $fakeAccountRepository;
     private PaymentService&MockObject $paymentServiceMock;
+    private FakeAccountRepository $fakeAccountRepository;
     private MakePaymentService $makePaymentService;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->accountRepositoryMock = $this->createMock(AccountRepository::class);
         $this->paymentServiceMock = $this->createMock(PaymentService::class);
         $this->fakeAccountRepository = new FakeAccountRepository();
 

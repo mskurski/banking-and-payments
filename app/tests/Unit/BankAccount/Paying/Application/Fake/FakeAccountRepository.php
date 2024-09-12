@@ -7,8 +7,7 @@ namespace Tests\Unit\BankAccount\Paying\Application\Fake;
 use App\BankAccount\Paying\Domain\Payment\Account;
 use App\BankAccount\Paying\Domain\Payment\AccountId;
 use App\BankAccount\Paying\Domain\Payment\AccountRepository;
-use App\BankAccount\Paying\Domain\Payment\Money;
-use App\BankAccount\Paying\Domain\Payment\PaymentId;
+use App\BankAccount\Paying\Domain\Payment\Payment;
 
 final class FakeAccountRepository implements AccountRepository
 {
@@ -22,8 +21,6 @@ final class FakeAccountRepository implements AccountRepository
         foreach ($accounts as $account) {
             $this->accounts[$account->id->toString()] = $account;
         }
-
-        $this->accountTransactions = [];
     }
 
     public function findAccount(AccountId $accountId): ?Account
@@ -31,14 +28,8 @@ final class FakeAccountRepository implements AccountRepository
         return $this->accounts[$accountId->toString()] ?? null;
     }
 
-    public function savePayment(
-        PaymentId $paymentId,
-        AccountId $debitAccountId,
-        Money $debitMoney,
-        AccountId $creditAccountId,
-        Money $creditMoney,
-        \DateTimeImmutable $date
-    ): void {
+    public function savePayment(Payment $payment): void
+    {
         // to be implemented
     }
 
