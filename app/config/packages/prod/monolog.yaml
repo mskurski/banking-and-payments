@@ -1,0 +1,16 @@
+monolog:
+    handlers:
+        main:
+            type: stream
+            path: php://stdout
+            formatter: monolog.formatter.json
+            level: !php/const Monolog\Logger::INFO
+            channels: ["app"]
+        console:
+            type: console
+            process_psr_3_messages: false
+            channels: ["!event", "!doctrine"]
+        deprecation:
+            type: stream
+            channels: [deprecation]
+            path: php://stderr

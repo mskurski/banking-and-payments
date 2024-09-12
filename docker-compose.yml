@@ -1,0 +1,27 @@
+services:
+  php:
+      container_name: mskurski_job_php
+      platform: ${PLATFORM_PHP}
+      build:
+        context: .
+        dockerfile: docker/php/Dockerfile
+        target: development
+        args:
+          PLATFORM: ${PLATFORM_PHP}
+          USER_ID: ${USER_ID:-1000}
+          GROUP_ID: ${GROUP_ID:-1000}
+      volumes:
+        - ./app:/app:cached
+        - ./docker/php/config/xdebug.ini:/usr/local/etc/php/conf.d/zzz-xdebug.ini:ro
+      working_dir: /app
+      ports:
+        - 127.0.0.1:${NGINX_PORT:-8870}:8080
+      environment:
+        PHP_IDE_CONFIG: "serverName=job.local"
+        XDEBUG_CONFIG: "discover_client_host=true client_host=host.docker.internal client_port=9003"
+      networks:
+        - mskurski_job_network
+
+networks:
+  mskurski_job_network:
+    driver: bridge

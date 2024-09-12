@@ -1,0 +1,10 @@
+security:
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+    # Note: Only the *first* access control that matches will be used
+    access_control:
+        - { path: ^/api/doc, roles: PUBLIC_ACCESS }
+        - { path: ^/v1, roles: PUBLIC_ACCESS } # this should be changed to ROLE_USER

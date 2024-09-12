@@ -1,0 +1,21 @@
+###> symfony/dotenv ###
+/.env.local
+/.env.local.php
+/.env.*.local
+###< symfony/dotenv ###
+
+###> symfony/framework-bundle ###
+/bin/*
+!bin/console
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+###> symfony/phpunit-bridge ###
+/phpunit.xml
+###< symfony/phpunit-bridge ###
+
+###> phpunit/phpunit ###
+.phpunit.result.cache
+###< phpunit/phpunit ###
